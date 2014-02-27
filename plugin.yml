@@ -1,0 +1,9 @@
+name: LeveledMobs
+main: mainLeveledMobs.LeveledMobs
+version: 15.0
+
+commands:
+   lm:
+      description: Main LeveledMobs command
+
+softdepend: [WorldEdit, WorldGuard]
