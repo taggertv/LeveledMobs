@@ -268,12 +268,10 @@ public class LeveledMobs extends JavaPlugin
       }
       else if ((args[0].equalsIgnoreCase("refreshmobs")) && (sender.hasPermission("LeveledMobs.refreshmobs")))
       {
-        Iterator localIterator2;
-        
-        for (World world : sender.getServer().getWorlds())
+        for (World world : Bukkit.getWorlds())
         {
-            for (Entity ent : world.getEntities())
-
+          for (Entity ent : world.getEntities())
+          {
           if ((ent instanceof LivingEntity))
           {
             String entWorld = ent.getWorld().getName().replace("CraftWorld{name=", "");
@@ -313,8 +311,9 @@ public class LeveledMobs extends JavaPlugin
                   ent.remove();
                 }
               }
+             }
             }
-          }
+        }
         }
         if ((sender instanceof Player))
         {
@@ -326,6 +325,7 @@ public class LeveledMobs extends JavaPlugin
           ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
           console.sendMessage(ChatColor.DARK_RED + "[LeveledMobs]" + ChatColor.GREEN + " All mobs have been reset!");
         }
+       
       }
       else if ((args[0].equalsIgnoreCase("setup")) && (sender.hasPermission("LeveledMobs.setup")))
       {
@@ -533,7 +533,7 @@ public class LeveledMobs extends JavaPlugin
                     mob.setHealth(mob.getMaxHealth());
                     mob = ent;
 
-                    ent.setCustomName(ChatColor.GOLD + "[Lvl:" + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "]   " + ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getMaxHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]");
+                    ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "]   " + ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]");
                     if (getConfig().getBoolean("constantVisibility")) ent.setCustomNameVisible(true);
                     else if (getConfig().getBoolean("constantVisibility")) ent.setCustomNameVisible(false);
                   }
@@ -544,7 +544,7 @@ public class LeveledMobs extends JavaPlugin
                     mob.setHealth(mob.getMaxHealth());
                     mob = ent;
 
-                    ent.setCustomName(ChatColor.GOLD + "[" + ChatColor.DARK_RED + "LVL: " + ChatColor.RESET + ChatColor.BOLD + ChatColor.GREEN + (int)trueDistance + ChatColor.RESET + ChatColor.GOLD + "][" + ChatColor.DARK_RED + "Health: " + ChatColor.RESET + ChatColor.BOLD + ChatColor.GREEN + (int)mob.getMaxHealth() + ChatColor.GOLD + "]");
+                    ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "]   " + ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]");
                     if (getConfig().getBoolean("constantVisibility")) ent.setCustomNameVisible(true);
                     else if (getConfig().getBoolean("constantVisibility")) ent.setCustomNameVisible(false);  }  }  } 
             }
@@ -746,37 +746,18 @@ public class LeveledMobs extends JavaPlugin
     {
       if (ent.getCustomName() != null)
       {
-        String name = ent.getCustomName();
-        String trueEnd = null;
-        int index1 = name.indexOf("]") - 4;
-        int index2 = 0;
-        String b = ChatColor.GREEN + " ";
-        char c1 = b.charAt(1);
-        char c2 = b.charAt(0);
-
-        for (int x = index1; x < index1 + 1; x--)
-        {
-          if ((name.charAt(x) == c1) && (name.charAt(x - 1) == c2))
-          {
-            index2 = x + 1;
-            break;
-          }
-        }
-        if (index2 < 0)
-        {
-          index2 = 0;
-        }
-        else
-        {
-          trueEnd = name.substring(index2, index1);
-        }
-        final double lvl = Double.valueOf(trueEnd).doubleValue();
+        String name = ChatColor.stripColor(ent.getCustomName());
+        int lvlStart = name.indexOf(": ", 0)+2;
+        int lvlEnd = name.indexOf("]", 0);
+        String temp = name.substring(lvlStart, lvlEnd);
+        
+        final int lvl = Integer.parseInt(temp);
         this.s.scheduleSyncDelayedTask(this, new Runnable()
         {
           public void run()
           {
             Damageable tempmob = (Damageable)e.getEntity();
-            ent.setCustomName(ChatColor.GOLD + "[" + ChatColor.DARK_RED + "LVL: " + ChatColor.RESET + ChatColor.BOLD + ChatColor.GREEN + (int)lvl + ChatColor.RESET + ChatColor.GOLD + "][" + ChatColor.DARK_RED + "Health: " + ChatColor.RESET + ChatColor.BOLD + ChatColor.GREEN + (int)Math.ceil(tempmob.getHealth()) + ChatColor.GOLD + "]");
+           ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)lvl + ChatColor.GOLD + "]   " + ChatColor.RED + "[" + ChatColor.GREEN + (int)Math.ceil(tempmob.getHealth()) + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]");
           }
         }
         , 0L);
@@ -790,7 +771,7 @@ public class LeveledMobs extends JavaPlugin
           public void run()
           {
             Damageable tempmob = (Damageable)e.getEntity();
-            ent.setCustomName(ChatColor.GOLD + "[" + ChatColor.DARK_RED + "LVL: " + ChatColor.RESET + ChatColor.BOLD + ChatColor.GREEN + (int)trueDistance + ChatColor.RESET + ChatColor.GOLD + "][" + ChatColor.DARK_RED + "Health: " + ChatColor.RESET + ChatColor.BOLD + ChatColor.GREEN + (int)Math.ceil(tempmob.getHealth()) + ChatColor.GOLD + "]");
+            ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "]   " + ChatColor.RED + "[" + ChatColor.GREEN + (int)tempmob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]");
           }
         }
         , 0L);
@@ -836,32 +817,11 @@ public class LeveledMobs extends JavaPlugin
   {
     if (ent.getCustomName() != null)
     {
-      String creatureName = ent.getCustomName();
-      String caughtLevel = null;
-      int index1 = creatureName.indexOf("]") - 4;
-      int index2 = 0;
-
-      String b = ChatColor.GREEN + " ";
-      char c1 = b.charAt(1);
-      char c2 = b.charAt(0);
-
-      for (int x = index1; x < index1 + 1; x--)
-      {
-        if ((creatureName.charAt(x) == c1) && (creatureName.charAt(x - 1) == c2))
-        {
-          index2 = x + 1;
-          break;
-        }
-      }
-      if (index2 < 0)
-      {
-        index2 = 0;
-      }
-      else
-      {
-        caughtLevel = creatureName.substring(index2, index1);
-      }
-      int lvl = Integer.valueOf(caughtLevel).intValue();
+      String creatureName = ChatColor.stripColor(ent.getCustomName());
+      int startLvl = creatureName.indexOf(": ")+2;
+      int endLvl = creatureName.indexOf("]");
+      
+      int lvl = Integer.parseInt(creatureName.substring(startLvl, endLvl));
       return lvl;
     }
     return 0;
