@@ -37,6 +37,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import static org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.CUSTOM;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
+import static org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.JOCKEY;
+import static org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SPAWNER_EGG;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -416,6 +420,14 @@ public class LeveledMobs extends JavaPlugin
 
                   double dist = cregion.distance(ent.getLocation());
                   double trueDistance = Math.ceil(dist / this.area);
+                  
+                  if (e.getSpawnReason() == SPAWNER_EGG) {
+                      return;
+                  }
+                  
+                  if (e.getSpawnReason() == JOCKEY) {
+                      return;
+                  }
 
                   if ((ent instanceof Zombie))
                   {
@@ -533,7 +545,8 @@ public class LeveledMobs extends JavaPlugin
                     mob.setHealth(mob.getMaxHealth());
                     mob = ent;
 
-                    ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "]   " + ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]");
+                    if (ent.getCustomName() != null) ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "] " + ent.getCustomName() /*+ ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]"*/);
+                    else ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "] "/*+ ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]"*/);    
                     if (getConfig().getBoolean("constantVisibility")) ent.setCustomNameVisible(true);
                     else if (getConfig().getBoolean("constantVisibility")) ent.setCustomNameVisible(false);
                   }
@@ -544,7 +557,8 @@ public class LeveledMobs extends JavaPlugin
                     mob.setHealth(mob.getMaxHealth());
                     mob = ent;
 
-                    ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "]   " + ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]");
+                    if (ent.getCustomName() != null) ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "] " + ent.getCustomName() /*+ ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]"*/);
+                    else ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "] "/*+ ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]"*/);    
                     if (getConfig().getBoolean("constantVisibility")) ent.setCustomNameVisible(true);
                     else if (getConfig().getBoolean("constantVisibility")) ent.setCustomNameVisible(false);  }  }  } 
             }
@@ -600,31 +614,31 @@ public class LeveledMobs extends JavaPlugin
         {
           if (!getConfig().getStringList("generalSettings.worldLocations." + entWorld + ".exemptedMobs").contains(entityTypeName))
           {
-            if ((ent instanceof Horse))
-            {
-              if (((Horse)ent).getOwner() == null)
-              {
-                setName(ent, e);
-              }
-            }
-            else if ((ent instanceof Wolf))
-            {
-              if (((Wolf)ent).getOwner() == null)
-              {
-                setName(ent, e);
-              }
-            }
-            else if ((ent instanceof Ocelot))
-            {
-              if (((Ocelot)ent).getOwner() == null)
-              {
-                setName(ent, e);
-              }
-            }
-            else if (!(ent instanceof Villager))
-            {
-              setName(ent, e);
-            }
+//            if ((ent instanceof Horse))
+//            {
+//              if (((Horse)ent).getOwner() == null)
+//              {
+//                setName(ent, e);
+//              }
+//            }
+//            else if ((ent instanceof Wolf))
+//            {
+//              if (((Wolf)ent).getOwner() == null)
+//              {
+//                setName(ent, e);
+//              }
+//            }
+//            else if ((ent instanceof Ocelot))
+//            {
+//              if (((Ocelot)ent).getOwner() == null)
+//              {
+//                setName(ent, e);
+//              }
+//            }
+//            else if (!(ent instanceof Villager))
+//            {
+//              setName(ent, e);
+//            }
           }
         }
       }
@@ -739,45 +753,47 @@ public class LeveledMobs extends JavaPlugin
   {
   }
 
-  public void setName(final LivingEntity ent, final EntityDamageEvent e)
-  {
-    Damageable mob = ent;
-    if (mob.getHealth() > 0.0D)
-    {
-      if (ent.getCustomName() != null)
-      {
-        String name = ChatColor.stripColor(ent.getCustomName());
-        int lvlStart = name.indexOf(": ", 0)+2;
-        int lvlEnd = name.indexOf("]", 0);
-        String temp = name.substring(lvlStart, lvlEnd);
-        
-        final int lvl = Integer.parseInt(temp);
-        this.s.scheduleSyncDelayedTask(this, new Runnable()
-        {
-          public void run()
-          {
-            Damageable tempmob = (Damageable)e.getEntity();
-           ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)lvl + ChatColor.GOLD + "]   " + ChatColor.RED + "[" + ChatColor.GREEN + (int)Math.ceil(tempmob.getHealth()) + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]");
-          }
-        }
-        , 0L);
-      }
-      else
-      {
-        double dist = ent.getWorld().getSpawnLocation().distance(ent.getLocation());
-        final double trueDistance = Math.ceil(dist / this.area);
-        this.s.scheduleSyncDelayedTask(this, new Runnable()
-        {
-          public void run()
-          {
-            Damageable tempmob = (Damageable)e.getEntity();
-            ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "]   " + ChatColor.RED + "[" + ChatColor.GREEN + (int)tempmob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]");
-          }
-        }
-        , 0L);
-      }
-    }
-  }
+//  public void setName(final LivingEntity ent, final EntityDamageEvent e)
+//  {
+//    Damageable mob = ent;
+//    if (mob.getHealth() > 0.0D)
+//    {
+//            
+//      if (ent.getCustomName().indexOf("]") != -1) {                    
+//            {
+//              String name = ChatColor.stripColor(ent.getCustomName());
+//              int lvlStart = name.indexOf(": ", 0)+2;
+//              int lvlEnd = name.indexOf("]", 0);
+//              String temp = name.substring(lvlStart, lvlEnd);
+//
+//              final int lvl = Integer.parseInt(temp);
+//              this.s.scheduleSyncDelayedTask(this, new Runnable()
+//              {
+//                public void run()
+//                {
+//                  Damageable tempmob = (Damageable)e.getEntity();
+//                  ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)lvl + ChatColor.GOLD + "] " + ent.getCustomName());
+//                }
+//              }
+//              , 0L);
+//            }
+//      }
+//      else
+//      {
+//        double dist = ent.getWorld().getSpawnLocation().distance(ent.getLocation());
+//        final double trueDistance = Math.ceil(dist / this.area);
+//        this.s.scheduleSyncDelayedTask(this, new Runnable()
+//        {
+//          public void run()
+//          {
+//            Damageable tempmob = (Damageable)e.getEntity();
+//            ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "] " + ent.getCustomName());
+//          }
+//        }
+//        , 0L);
+//      }
+//    }
+//  }
 
   public Location getNearestLocation(LivingEntity ent, CreatureSpawnEvent e, ArrayList<String> worlds, String worldName)
   {
