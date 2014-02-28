@@ -1,25 +1,21 @@
 package mainLeveledMobs;
 
+import com.sucy.skill.api.PlayerSkills;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Damageable;
@@ -37,27 +33,26 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import static org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.CUSTOM;
-import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import static org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.JOCKEY;
 import static org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SPAWNER_EGG;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTameEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 public class LeveledMobs extends JavaPlugin
   implements Listener
 {
+  PlayerSkills player;
+  int expGain;
+  int expFinal;
+  double expMultiplier;
   Boolean elites;
   Boolean giants;
   Boolean Sarmor;
@@ -233,6 +228,36 @@ public class LeveledMobs extends JavaPlugin
     }
     , 0L, 10L);
   }
+  
+//  @EventHandler(priority=EventPriority.HIGH)
+//  public void onExpGain (PlayerExperienceGainEvent event)
+//  {
+//      if (!event.isCommandExp())
+//      {
+//          this.player = event.getPlayerData();
+//          this.expGain = event.getExp();
+//          event.setExp(expFinal);
+//      }
+//  }
+//  
+//  @EventHandler(priority=EventPriority.HIGH)
+//  public void onKill (EntityDeathEvent event)
+//  {
+//      if (event.getEntity().getKiller() != null)
+//      {
+//          if (event.getEntity().getCustomName().indexOf("Lvl") != -1)
+//          {
+//              String name = event.getEntity().getCustomName();
+//              int lvlStart = name.indexOf(": ", 0)+2;
+//              int lvlEnd = name.indexOf("]", 0);
+//              String temp = name.substring(lvlStart, lvlEnd);
+//
+//              final int lvl = Integer.parseInt(temp);
+//              this.expMultiplier = getConfig().getDouble("expMultiplier");
+//              this.expFinal = (int)(this.expGain + this.expGain * lvl * this.expMultiplier);
+//          }
+//      }
+//  }
 
   @EventHandler
   public void EntityTameEvent(EntityTameEvent e)
@@ -349,9 +374,10 @@ public class LeveledMobs extends JavaPlugin
     return false;
   }
 
-  @EventHandler(priority=EventPriority.HIGHEST)
+  @EventHandler(priority=EventPriority.MONITOR)
   public void EntitySpawnEvent(CreatureSpawnEvent e)
   {
+      
     Horse h = null;
     Wolf w = null;
     Ocelot o = null;
@@ -541,11 +567,11 @@ public class LeveledMobs extends JavaPlugin
                   if ((ent instanceof Zombie))
                   {
                     Damageable mob = ent;
-                    mob.setMaxHealth(Math.ceil(20.0D + 20.0D * trueDistance * this.multiplier));
+                    mob.setMaxHealth(Math.ceil(mob.getHealth() + mob.getHealth() * trueDistance * this.multiplier));
                     mob.setHealth(mob.getMaxHealth());
                     mob = ent;
 
-                    if (ent.getCustomName() != null) ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "] " + ent.getCustomName() /*+ ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]"*/);
+                    if (ent.getCustomName() != null) ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "] " + ChatColor.RESET + ent.getCustomName() /*+ ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]"*/);
                     else ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "] "/*+ ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]"*/);    
                     if (getConfig().getBoolean("constantVisibility")) ent.setCustomNameVisible(true);
                     else if (getConfig().getBoolean("constantVisibility")) ent.setCustomNameVisible(false);
@@ -553,11 +579,11 @@ public class LeveledMobs extends JavaPlugin
                   else
                   {
                     Damageable mob = ent;
-                    mob.setMaxHealth(Math.ceil(mob.getMaxHealth() + mob.getMaxHealth() * trueDistance * this.multiplier));
+                    mob.setMaxHealth(Math.ceil(mob.getHealth() + mob.getHealth() * trueDistance * this.multiplier));
                     mob.setHealth(mob.getMaxHealth());
                     mob = ent;
 
-                    if (ent.getCustomName() != null) ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "] " + ent.getCustomName() /*+ ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]"*/);
+                    if (ent.getCustomName() != null) ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "] " + ChatColor.RESET + ent.getCustomName() /*+ ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]"*/);
                     else ent.setCustomName(ChatColor.GOLD + "[Lvl: " + ChatColor.YELLOW + (int)trueDistance + ChatColor.GOLD + "] "/*+ ChatColor.RED + "[" + ChatColor.GREEN + (int)mob.getHealth() + ChatColor.DARK_RED + "❤" + ChatColor.RED + "]"*/);    
                     if (getConfig().getBoolean("constantVisibility")) ent.setCustomNameVisible(true);
                     else if (getConfig().getBoolean("constantVisibility")) ent.setCustomNameVisible(false);  }  }  } 
