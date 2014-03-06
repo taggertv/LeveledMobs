@@ -370,6 +370,17 @@ public class LeveledMobs extends JavaPlugin
           console.sendMessage(ChatColor.DARK_RED + "[LeveledMobs]" + ChatColor.GREEN + " LeveledMobs has been Setup!");
         }
       }
+      else if ((args[0].equalsIgnoreCase("distance")) && (sender.hasPermission("LeveldMobs.distance")))
+      {
+          if ((sender instanceof Player))
+          {
+              Player p = (Player)sender;
+              String pWorld = p.getWorld().getName().replace("CraftWorld{name=", "");
+              Location cregion = getNearestLocation(p, this.worlds, pWorld);
+              double dist = cregion.distance(p.getLocation());
+              p.sendMessage(ChatColor.DARK_RED + "[LeveledMobs]" + ChatColor.GREEN + "The nearest spawn is " + dist + " blocks away.");
+          }
+      }
     }
     return false;
   }
@@ -821,6 +832,40 @@ public class LeveledMobs extends JavaPlugin
 //    }
 //  }
 
+  public Location getNearestLocation(Player p, ArrayList<String> worlds, String worldName)
+  {
+    Location primaryLoc = p.getLocation();
+    Location tempLoc = p.getLocation();
+
+    ArrayList centralSpawns = new ArrayList();
+
+    for (String locations : getConfig().getStringList("generalSettings.worldLocations." + worldName + ".centralSpawns"))
+    {
+      centralSpawns.add(locations);
+    }
+
+    primaryLoc.setWorld(p.getWorld());
+    primaryLoc.setX(getConfig().getDouble("generalSettings.worldLocations." + worldName + ".spawnLocations.spawn1.x"));
+    primaryLoc.setY(getConfig().getDouble("generalSettings.worldLocations." + worldName + ".spawnLocations.spawn1.y"));
+    primaryLoc.setZ(getConfig().getDouble("generalSettings.worldLocations." + worldName + ".spawnLocations.spawn1.z"));
+
+    if (centralSpawns.size() > 1)
+    {
+      for (Object spawn : centralSpawns)
+      {
+        tempLoc.setX(getConfig().getDouble("generalSettings.worldLocations." + worldName + ".spawnLocations." + spawn + ".x"));
+        tempLoc.setY(getConfig().getDouble("generalSettings.worldLocations." + worldName + ".spawnLocations." + spawn + ".y"));
+        tempLoc.setZ(getConfig().getDouble("generalSettings.worldLocations." + worldName + ".spawnLocations." + spawn + ".z"));
+
+        if (tempLoc.distance(p.getLocation()) < primaryLoc.distance(p.getLocation()))
+        {
+          primaryLoc = tempLoc;
+        }
+      }
+    }
+    return primaryLoc;
+  }
+  
   public Location getNearestLocation(LivingEntity ent, CreatureSpawnEvent e, ArrayList<String> worlds, String worldName)
   {
     Location primaryLoc = ent.getLocation();
